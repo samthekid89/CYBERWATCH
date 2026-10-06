@@ -1,0 +1,66 @@
+-- database/schema.sql — estrutura da base de dados `cyberwatch`
+-- Motor: InnoDB | Charset: utf8mb4 | Collation: utf8mb4_unicode_ci
+--
+-- TODO: criar a BD e as tabelas abaixo (ordem importa por causa das chaves estrangeiras).
+-- Usar IF NOT EXISTS / DROP TABLE IF EXISTS conforme preferires para reimportar em dev.
+-- Nota: `timestamp` não é palavra reservada no MySQL, mas se der erro usar backticks.
+
+-- ---------------------------------------------------------------------
+-- 1) users
+-- ---------------------------------------------------------------------
+-- id             INT, PK, AUTO_INCREMENT
+-- username       VARCHAR(50), NOT NULL, UNIQUE
+-- password_hash  VARCHAR(255), NOT NULL        (resultado de password_hash())
+-- role           ENUM('admin','analista'), NOT NULL, default 'analista'
+-- created_at     DATETIME, NOT NULL, default CURRENT_TIMESTAMP
+
+-- ---------------------------------------------------------------------
+-- 2) detection_rules
+-- ---------------------------------------------------------------------
+-- id                   INT, PK, AUTO_INCREMENT
+-- name                 VARCHAR(100), NOT NULL
+-- attack_type          ENUM('brute_force','sql_injection','port_scan'), NOT NULL, UNIQUE (1 regra por tipo no MVP)
+-- threshold            INT, NOT NULL            (nº de eventos que dispara a regra)
+-- time_window_seconds  INT, NOT NULL            (janela de tempo)
+-- enabled              TINYINT(1), NOT NULL, default 1
+-- updated_at           DATETIME, default CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+
+-- ---------------------------------------------------------------------
+-- 3) events
+-- ---------------------------------------------------------------------
+-- id           BIGINT, PK, AUTO_INCREMENT
+-- timestamp    DATETIME, NOT NULL              (quando o evento ocorreu)
+-- source_ip    VARCHAR(45), NOT NULL           (45 chars cobre IPv6)
+-- event_type   ENUM('login_failed','sqli_attempt','port_scan_probe'), NOT NULL
+-- severity     ENUM('low','medium','high','critical'), NOT NULL
+-- description  VARCHAR(255), NOT NULL
+-- Índices sugeridos: (timestamp), (source_ip, event_type, timestamp) para a deteção
+
+-- ---------------------------------------------------------------------
+-- 4) incidents
+-- ---------------------------------------------------------------------
+-- id           INT, PK, AUTO_INCREMENT
+-- title        VARCHAR(150), NOT NULL
+-- attack_type  ENUM('brute_force','sql_injection','port_scan'), NOT NULL
+-- severity     ENUM('low','medium','high','critical'), NOT NULL
+-- status       ENUM('open','investigating','resolved'), NOT NULL, default 'open'
+-- source_ip    VARCHAR(45), NOT NULL           (origem principal do ataque)
+-- assigned_to  INT, NULL, FK -> users(id) ON DELETE SET NULL
+-- notes        TEXT, NULL
+-- created_at   DATETIME, NOT NULL, default CURRENT_TIMESTAMP
+-- updated_at   DATETIME, NOT NULL, default CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+-- resolved_at  DATETIME, NULL                  (usado no KPI de tempo médio de resolução)
+-- Índices sugeridos: (status), (severity), (source_ip, attack_type, status)
+
+-- ---------------------------------------------------------------------
+-- 5) incident_events  (liga eventos a incidentes: relação N:N)
+-- ---------------------------------------------------------------------
+-- incident_id  INT, NOT NULL, FK -> incidents(id) ON DELETE CASCADE
+-- event_id     BIGINT, NOT NULL, FK -> events(id) ON DELETE CASCADE
+-- PRIMARY KEY (incident_id, event_id)
+
+-- ---------------------------------------------------------------------
+-- Extras opcionais (só se sobrar tempo)
+-- ---------------------------------------------------------------------
+-- audit_log (user_id, action, target, created_at) para registar ações dos utilizadores
+-- login_attempts (ip, username, created_at) para limitar tentativas de login reais

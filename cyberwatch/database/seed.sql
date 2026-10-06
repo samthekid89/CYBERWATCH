@@ -1,0 +1,17 @@
+-- database/seed.sql — dados iniciais e de exemplo
+--
+-- TODO:
+--  1. users: criar 1 admin e 1 analista.
+--     ATENÇÃO: não escrever passwords em texto simples. Gerar o hash com
+--     password_hash() (ex.: pequeno script PHP de uso único ou `php -r` na linha de comandos)
+--     e colar apenas o hash aqui.
+--  2. detection_rules: 3 regras (uma por attack_type), por exemplo:
+--       brute_force    → threshold 5,  janela 60 s
+--       sql_injection  → threshold 3,  janela 120 s
+--       port_scan      → threshold 10, janela 30 s
+--  3. events: ~30 eventos de exemplo com timestamps recentes, IPs de documentação
+--     (203.0.113.x e 198.51.100.x, nunca IPs reais) e mistura de tipos/severidades.
+--  4. incidents: ~8 incidentes de exemplo com estados variados (open/investigating/resolved).
+--     Para os resolved, preencher resolved_at (para o KPI de tempo médio).
+--  5. incident_events: ligar alguns eventos aos incidentes de exemplo.
+--  6. Confirmar que o seed corre sem erros depois do schema.sql.
